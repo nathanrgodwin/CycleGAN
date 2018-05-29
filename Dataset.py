@@ -15,17 +15,8 @@ class ImageSet(Dataset):
         self.url = "https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/"
         self.dataPath = "./datasets/"
         self.loaded = 0
-    
-    def loadData(self, 
-                 setName, 
-                 mode, 
-                 img_size): 
         
-        self.transform = transforms.Compose([transforms.Resize(int(img_size*1.12), Image.BICUBIC),
-                      transforms.RandomCrop(img_size),
-                      transforms.RandomHorizontalFlip(),
-                      transforms.ToTensor(),
-                      transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
+    def downloadData(self, setName):
         if not os.path.isdir(self.dataPath + setName):
             try:
                 url = self.url + setName + ".zip"
@@ -56,6 +47,14 @@ class ImageSet(Dataset):
                 print("Removed zip file")
             except:
                 print("Error downloading data set " + setName, file=sys.stderr)
+        
+    def loadData(self, 
+                 setName, 
+                 mode, 
+                 img_size,
+                 im_transforms): 
+        self.mode = mode;
+        self.transform = transforms.Compose(im_transforms)
         self.dataPath += setName
         print(self.dataPath)
         self.x_files = sorted(glob.glob(os.path.join(self.dataPath, mode+"A") + '/*.*'))
@@ -63,11 +62,28 @@ class ImageSet(Dataset):
         self.loaded = 1
         print("Finished loading data")
         
+    def loadImage(self, img_path, im_transforms, mode):
+        self.mode = mode;
+        self.transform = transforms.Compose(im_transforms);
+        self.x_files = [img_path];
+        self.loaded = 1
+        print("Finished loading image")
+        
+    def loadImageSet(self, imgs_path, im_transforms, mode):
+        self.mode = mode;
+        self.transform = transforms.Compose(im_transforms);
+        self.x_files = sorted(glob.glob(imgs_path + '/*.*'))
+        self.loaded = 1
+        print("Finished loading images")
+        
     def __len__(self):
         if not self.loaded:
             print("Data set not loaded", file=sys.stderr)
         else:
-            return max(len(self.x_files), len(self.y_files))
+            if (self.mode == "train"):
+                return max(len(self.x_files), len(self.y_files))
+            elif (self.mode == "test"):
+                return len(self.x_files)
         
     def __getitem__(self, index):
         if not self.loaded:
@@ -75,7 +91,9 @@ class ImageSet(Dataset):
             return 0;
         else:
             x_img = self.transform(Image.open(self.x_files[index % len(self.x_files)]))
-            y_img = self.transform(Image.open(self.y_files[random.randint(0, len(self.y_files) - 1)]))
-            
-            return {'x':x_img,'y':y_img}
-    
+            if (self.mode == "train"):
+                y_img = self.transform(Image.open(self.y_files[random.randint(0, len(self.y_files) - 1)]))
+
+                return {'x':x_img,'y':y_img}
+            elif (self.mode == "test"):
+                return {'img':x_img,'path':os.path.basename(self.x_files[index % len(self.x_files)])}

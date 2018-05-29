@@ -14,6 +14,7 @@ from torch.autograd import Variable
 import sys
 import itertools
 from torch.utils.data import DataLoader
+from torchvision import transforms
 from Dataset import ImageSet
 import datetime
 import torchvision.utils as tv
@@ -52,7 +53,7 @@ LR_DECAY_START = 100
 LR_DECAY_END = 200
 NUM_EPOCHS = 200
 
-load_partial_net = True
+load_partial_net = False
 CURR_EPOCH = 0
 
 
@@ -63,8 +64,14 @@ CURR_EPOCH = 0
 
 # apple2orange, summer2winter_yosemite, horse2zebra, monet2photo, cezanne2photo, ukiyoe2photo, vangogh2photo, maps, cityscapes, facades, iphone2dslr_flower, ae_photos"
 imageSet = ImageSet();
-dataset = "ukiyoe2photo"
-imageSet.loadData(dataset, 'train', im_size)
+dataset = "summer2winter_yosemite"
+imageSet.downloadData(dataset)
+training_transforms = [transforms.Resize(int(img_size*1.12), Image.BICUBIC),
+                  transforms.RandomCrop(img_size),
+                  transforms.RandomHorizontalFlip(),
+                  transforms.ToTensor(),
+                  transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))];
+imageSet.loadData(dataset, 'train', im_size, training_transforms)
 imgLoader = DataLoader(imageSet,shuffle=True)
 
 
@@ -299,5 +306,5 @@ for i in range(CURR_EPOCH,NUM_EPOCHS):
 # In[ ]:
 
 
-close(logfile)
+logfile.close()
 
