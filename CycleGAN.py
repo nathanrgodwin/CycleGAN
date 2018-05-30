@@ -4,7 +4,7 @@
 # <h1>CycleGAN for Style Transfer</h1>
 # <h3> Imports </h3>
 
-# In[1]:
+# In[ ]:
 
 
 #Python imports
@@ -14,13 +14,14 @@ from torch.autograd import Variable
 import sys
 import itertools
 from torch.utils.data import DataLoader
-from torchvision import transforms
 from Dataset import ImageSet
 import datetime
 import torchvision.utils as tv
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from torchvision import transforms
+from PIL import Image
 
 #Import network elements
 import network_elements as net
@@ -35,7 +36,7 @@ print("Reloading net")
 
 # <h3>Set parameters</h3>
 
-# In[2]:
+# In[ ]:
 
 
 #The number of channels in the input image
@@ -53,21 +54,21 @@ LR_DECAY_START = 100
 LR_DECAY_END = 200
 NUM_EPOCHS = 200
 
-load_partial_net = False
+load_partial_net = True
 CURR_EPOCH = 0
 
 
 # <h3>Import dataset</h3>
 
-# In[3]:
+# In[ ]:
 
 
 # apple2orange, summer2winter_yosemite, horse2zebra, monet2photo, cezanne2photo, ukiyoe2photo, vangogh2photo, maps, cityscapes, facades, iphone2dslr_flower, ae_photos"
 imageSet = ImageSet();
-dataset = "summer2winter_yosemite"
+dataset = "monet2photo"
 imageSet.downloadData(dataset)
 training_transforms = [transforms.Resize(int(im_size*1.12), Image.BICUBIC),
-                  transforms.RandomCrop(img_size),
+                  transforms.RandomCrop(im_size),
                   transforms.RandomHorizontalFlip(),
                   transforms.ToTensor(),
                   transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))];
@@ -77,7 +78,7 @@ imgLoader = DataLoader(imageSet,shuffle=True)
 
 # <h3>Define the CycleGAN network</h3>
 
-# In[4]:
+# In[ ]:
 
 
 #G : X->Y
@@ -106,7 +107,7 @@ identity_loss = tnn.L1Loss(); #Prevents image tinting
 
 # <h3>Initialize weights for each network</h3>
 
-# In[5]:
+# In[ ]:
 
 
 # norm_weights function applies Gaussian norm weights with mean 0 and stddev 0.02
@@ -118,7 +119,7 @@ Dy.apply(net.conv_norm_weights);
 
 # <h3>Set optimizer parameters</h3>
 
-# In[6]:
+# In[ ]:
 
 
 #simplified version has no pooling, paper does not, paper code does...
@@ -134,7 +135,7 @@ dy_opt = torch.optim.Adam(Dy.parameters(), lr = LEARNING_RATE)
 
 # <h3> Initialize training variables </h3>
 
-# In[7]:
+# In[ ]:
 
 
 x = torch.cuda.FloatTensor(1, im_in_channels, im_size, im_size)
@@ -167,7 +168,7 @@ logfile = open("./log/" + dataset + "/loss.log","a")
 
 # <h3> Load Partial Net </h3>
 
-# In[8]:
+# In[ ]:
 
 
 if (load_partial_net):
@@ -194,14 +195,14 @@ dy_lr = torch.optim.lr_scheduler.LambdaLR(dy_opt, net.LRDecay(LR_DECAY_START, LR
 
 # <h3> Training </h3>
 
-# In[9]:
+# In[ ]:
 
 
 start_time = datetime.datetime.now()
 for i in range(CURR_EPOCH,NUM_EPOCHS):
+    elapsed_time = datetime.datetime.now()-start_time
+    print("Epoch %d/%d, %s"%(i,LR_DECAY_END,str(elapsed_time)))    
     for j, img in enumerate(imgLoader):
-        elapsed_time = datetime.datetime.now()-start_time
-        print("Epoch %d/%d, %d/%d, %s"%(i,LR_DECAY_END,j,len(imageSet),str(elapsed_time)))
         src_x = Variable(x.copy_(img['x']))
         src_y = Variable(y.copy_(img['y']))
         
@@ -307,4 +308,10 @@ for i in range(CURR_EPOCH,NUM_EPOCHS):
 
 
 logfile.close()
+
+
+# In[ ]:
+
+
+print("Finished training")
 
