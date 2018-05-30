@@ -17,6 +17,8 @@ model = args[-2];
 
 p = Params();
 p.model = model;
+test_transforms = [];
+
 if "-r" in args[1:-2]:
     p.dir = 1
 if "-o" in args[1:-2]:
@@ -25,38 +27,48 @@ if "-o" in args[1:-2]:
 else:
     if not os.path.exists("./outputs/"):
         os.mkdir("./outputs/")
-    if p.dir:
-        tempPath = path.split();
-        p.outputPath = "./outputs/"+tempPath[-1]+"/";
+    p.outputPath = "./outputs/"+model+"/";
+    if not os.path.exists(p.outputPath):
+        os.mkdir(p.outputPath);
+    if (p.dir):
+        tempPath = path.split('/')
+        print(tempPath)
+        if (path[-1] == '/'):
+            p.outputPath += tempPath[-2] + "/";
+        else:
+            p.outputPath += tempPath[-1] + "/";
         if not os.path.exists(p.outputPath):
             os.mkdir(p.outputPath);
-    elif not p.dir:
-        tempPath = os.path.dirname(path)+"/out_"+os.path.basename(path);
-        p.outputPath = tempPath;
+                
 if "-d" in args[1:-2]:
     outputInd = args.index("-d");
     p.direction = args[outputInd+1];
+    
+if "-s" in args[1:-2]:
+    outputInd = args.index("-s");
+    p.scale = float(args[outputInd+1]);
+    
         
 print("Model under test is " + p.model);
 print("The output path is "+p.outputPath);
 
-images = ImageSet();
-test_transforms = [transforms.ToTensor(),
-                transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)) ];
+images = ImageSet(p.scale);
+test_transforms += [transforms.ToTensor(),
+                transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5))];
 if (p.dir):
     if os.path.exists(path):
         print("Processing set in directory: "+path);
         set
     else:
         print("No directory exists at path: "+path, file=sys.stderr); 
-    images.loadImageSet(path, test_transforms, "test");
+    images.loadImageSet(path, test_transforms, "test", p.scale);
     
 else:
     if os.path.exists(path):
         print("Processing file at path: " + path);
     else:
         print("No file exists at path: "+path, file=sys.stderr);
-    images.loadImage(path, test_transforms, "test");
+    images.loadImage(path, test_transforms, "test", p.scale);
 
 imgLoader = DataLoader(images, 1, shuffle=False);
 
@@ -67,8 +79,9 @@ F.eval();
     
 for i, img in enumerate(imgLoader):
     imgsize = img['img'].size();
-    print(imgsize[2], imgsize[3]);
+    imname = img['path']
+    print(imname)
     img_gpu = torch.cuda.FloatTensor(1,3,imgsize[2],imgsize[3]);
     img_var = Variable(img_gpu.copy_(img['img']))
     result = 0.5*(F(img_var).data+1.0);
-    tv.save_image(result, p.outputPath);
+    tv.save_image(result, p.outputPath+'out_' + imname[0]);

@@ -66,7 +66,7 @@ CURR_EPOCH = 0
 imageSet = ImageSet();
 dataset = "summer2winter_yosemite"
 imageSet.downloadData(dataset)
-training_transforms = [transforms.Resize(int(img_size*1.12), Image.BICUBIC),
+training_transforms = [transforms.Resize(int(im_size*1.12), Image.BICUBIC),
                   transforms.RandomCrop(img_size),
                   transforms.RandomHorizontalFlip(),
                   transforms.ToTensor(),

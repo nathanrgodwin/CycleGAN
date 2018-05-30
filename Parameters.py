@@ -4,3 +4,4 @@ class Params:
         self.outputPath = '';
         self.model = '';
         self.direction = '';
+        self.scale = 0.0;

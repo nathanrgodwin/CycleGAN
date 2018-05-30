@@ -54,7 +54,7 @@ class ImageSet(Dataset):
                  img_size,
                  im_transforms): 
         self.mode = mode;
-        self.transform = transforms.Compose(im_transforms)
+        self.transformList = im_transforms;
         self.dataPath += setName
         print(self.dataPath)
         self.x_files = sorted(glob.glob(os.path.join(self.dataPath, mode+"A") + '/*.*'))
@@ -62,19 +62,24 @@ class ImageSet(Dataset):
         self.loaded = 1
         print("Finished loading data")
         
-    def loadImage(self, img_path, im_transforms, mode):
+    def loadImage(self, img_path, im_transforms, mode, scale):
         self.mode = mode;
-        self.transform = transforms.Compose(im_transforms);
+        self.transformList = im_transforms;
         self.x_files = [img_path];
         self.loaded = 1
+        self.scale = scale
         print("Finished loading image")
         
-    def loadImageSet(self, imgs_path, im_transforms, mode):
+    def loadImageSet(self, imgs_path, im_transforms, mode, scale):
         self.mode = mode;
-        self.transform = transforms.Compose(im_transforms);
+        self.transformList = im_transforms;
         self.x_files = sorted(glob.glob(imgs_path + '/*.*'))
         self.loaded = 1
+        self.scale = scale
         print("Finished loading images")
+        
+    def setTransform(self, im_transforms):
+        self.transformList = im_transforms;
         
     def __len__(self):
         if not self.loaded:
@@ -90,10 +95,26 @@ class ImageSet(Dataset):
             print("Data set not loaded", file=sys.stderr)
             return 0;
         else:
-            x_img = self.transform(Image.open(self.x_files[index % len(self.x_files)]))
+            x = Image.open(self.x_files[index % len(self.x_files)]);
+            transform_x = []
+            if (self.mode == "test"):
+                xx_size, xy_size = x.size;
+                xx_size = int(xx_size*self.scale);
+                xy_size = int(xy_size*self.scale);
+                print(xx_size, xy_size);
+                transform_x += [transforms.Resize((xy_size,xx_size), Image.BICUBIC)];
+            
+            transform_x += self.transformList
+            transform_x_comp = transforms.Compose(transform_x);
+            
+            x_img = transform_x_comp(x)
+            
             if (self.mode == "train"):
-                y_img = self.transform(Image.open(self.y_files[random.randint(0, len(self.y_files) - 1)]))
+                transform_y_comp = transforms.Compose(self.transformList);
+                y_img = transform_y_comp(Image.open(self.y_files[random.randint(0, len(self.y_files) - 1)]))
 
                 return {'x':x_img,'y':y_img}
             elif (self.mode == "test"):
-                return {'img':x_img,'path':os.path.basename(self.x_files[index % len(self.x_files)])}
+                x_path = self.x_files[index % len(self.x_files)];
+                x_path = x_path.split('/');
+                return {'img':x_img,'path':x_path[-1]}
