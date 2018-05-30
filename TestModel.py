@@ -24,12 +24,12 @@ if "-r" in args[1:-2]:
 if "-o" in args[1:-2]:
     outputInd = args.index("-o");
     p.outputPath = args[outputInd+1];
+    if not os.path.exists(p.outputPath):
+	os.makedirs(p.outputPath);
 else:
-    if not os.path.exists("./outputs/"):
-        os.mkdir("./outputs/")
     p.outputPath = "./outputs/"+model+"/";
     if not os.path.exists(p.outputPath):
-        os.mkdir(p.outputPath);
+        os.makedirs(p.outputPath);
     if (p.dir):
         tempPath = path.split('/')
         print(tempPath)
@@ -54,7 +54,7 @@ else:
 print("Model under test is " + p.model);
 print("The output path is "+p.outputPath);
 
-images = ImageSet(p.scale);
+images = ImageSet();
 test_transforms += [transforms.ToTensor(),
                 transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5))];
 if (p.dir):
