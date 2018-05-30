@@ -47,6 +47,8 @@ if "-d" in args[1:-2]:
 if "-s" in args[1:-2]:
     outputInd = args.index("-s");
     p.scale = float(args[outputInd+1]);
+else:
+    p.scale = 1.0;
     
         
 print("Model under test is " + p.model);
