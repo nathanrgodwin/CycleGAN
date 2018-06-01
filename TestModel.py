@@ -43,6 +43,8 @@ else:
 if "-d" in args[1:-2]:
     outputInd = args.index("-d");
     p.direction = args[outputInd+1];
+else:
+	p.direction = "yx";
     
 if "-s" in args[1:-2]:
     outputInd = args.index("-s");
@@ -74,9 +76,16 @@ else:
 
 imgLoader = DataLoader(images, 1, shuffle=False);
 
-F = Mapping(3,3,128);
+if (p.direction == 'xy'):
+	modelfile = torch.load("./model/"+p.model+"/G.data");
+else:
+	modelfile = torch.load("./model/"+p.model+"/F.data");
+
+m19 = modelfile['model.19.weight'];
+im_size = m19.size(0);
+F = Mapping(3,3,im_size);
 F.cuda();
-F.load_state_dict(torch.load("./model/"+p.model+"/F.data"));
+F.load_state_dict(modelfile);
 F.eval();
     
 for i, img in enumerate(imgLoader):

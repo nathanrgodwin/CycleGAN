@@ -199,10 +199,14 @@ dy_lr = torch.optim.lr_scheduler.LambdaLR(dy_opt, net.LRDecay(LR_DECAY_START, LR
 
 
 start_time = datetime.datetime.now()
+j_prev = 0;
 for i in range(CURR_EPOCH,NUM_EPOCHS):
     elapsed_time = datetime.datetime.now()-start_time
     print("Epoch %d/%d, %s"%(i,LR_DECAY_END,str(elapsed_time)))    
     for j, img in enumerate(imgLoader):
+	if int((10.0*j)/len(imageSet)) != j_prev:
+		j_prev = int((10.0*j)/len(imageSet));
+		print(str(j_prev*10) + "%")
         src_x = Variable(x.copy_(img['x']))
         src_y = Variable(y.copy_(img['y']))
         
@@ -266,11 +270,11 @@ for i in range(CURR_EPOCH,NUM_EPOCHS):
         
         dy_opt.step()     
         
-        print("%d,%d,%f,%f,%f,%f,%f\n"%(i,j,mapLoss.data[0], 
-                                          (lossX_X+lossY_Y).data[0], 
-                                          (lossX_Y+lossY_X).data[0], 
-                                          (lossX_Y_X+lossY_X_Y).data[0], 
-                                          (dxLoss+dyLoss).data[0]))
+        #print("%d,%d,%f,%f,%f,%f,%f\n"%(i,j,mapLoss.data[0], 
+        #                                  (lossX_X+lossY_Y).data[0], 
+        #                                  (lossX_Y+lossY_X).data[0], 
+        #                                  (lossX_Y_X+lossY_X_Y).data[0], 
+        #                                  (dxLoss+dyLoss).data[0]))
         
         logfile.write("%d,%d,%f,%f,%f,%f,%f\n"%(i,j,mapLoss.data[0], 
                                           (lossX_X+lossY_Y).data[0], 
