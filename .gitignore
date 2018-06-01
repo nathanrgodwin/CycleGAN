@@ -1,3 +1,4 @@
 datasets/
 **/gan_opt.data
 CycleGAN.ipynb
+outputs/
