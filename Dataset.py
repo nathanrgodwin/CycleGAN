@@ -101,7 +101,6 @@ class ImageSet(Dataset):
                 xx_size, xy_size = x.size;
                 xx_size = int(xx_size*self.scale);
                 xy_size = int(xy_size*self.scale);
-                print(xx_size, xy_size);
                 transform_x += [transforms.Resize((xy_size,xx_size), Image.BICUBIC)];
             
             transform_x += self.transformList
