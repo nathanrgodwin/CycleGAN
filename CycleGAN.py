@@ -282,9 +282,9 @@ for i in range(CURR_EPOCH,NUM_EPOCHS):
                                           (lossX_Y_X+lossY_X_Y).data[0], 
                                           (dxLoss+dyLoss).data[0]))
         
-    tv.save_image(src_x.data, './img/' + dataset + '/src_x_%d.jpg'%(i))
+    #tv.save_image(src_x.data, './img/' + dataset + '/src_x_%d.jpg'%(i))
     tv.save_image(src_y.data, './img/' + dataset + '/src_y_%d.jpg'%(i))
-    tv.save_image(mapX_Y.data, './img/' + dataset + '/mapX_Y_%d.jpg'%(i))
+    #tv.save_image(mapX_Y.data, './img/' + dataset + '/mapX_Y_%d.jpg'%(i))
     tv.save_image(mapY_X.data, './img/' + dataset + '/mapY_X_%d.jpg'%(i))
     gan_lr.step()
     dx_lr.step()
