@@ -19,6 +19,7 @@ p = Params();
 p.model = model;
 test_transforms = [];
 
+#Load parameters
 if "-r" in args[1:-2]:
     p.dir = 1
 if "-o" in args[1:-2]:

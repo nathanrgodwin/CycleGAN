@@ -122,9 +122,6 @@ Dx.apply(net.conv_norm_weights);
 # In[ ]:
 
 
-#simplified version has no pooling, paper does not, paper code does...
-# REMOVE
-
 gan_opt = torch.optim.Adam(F.parameters(),
                            lr = LEARNING_RATE)
 dx_opt = torch.optim.Adam(Dx.parameters(), lr = LEARNING_RATE)

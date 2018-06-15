@@ -1,3 +1,4 @@
+#Parameters for TestModel.py
 class Params:
     def __init__(self):
         self.dir = 0;

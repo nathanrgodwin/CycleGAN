@@ -3,9 +3,6 @@ import torch
 from torch.autograd import Variable
 import random
 
-#IMPORTANT: ARCHITECTURES IN THIS FILE DO NOT FOLLOW THE PAPER, THEY FOLLOW THE CODE
-# REMOVE
-
 #Define residual block
 #Architecture is:
     # Reflection padding
@@ -63,32 +60,35 @@ class Mapping(tnn.Module):
         elif (img_dim >= 256):
             num_res_blocks = 9
         
+        #Add initial layers
         gen_model = [tnn.ReflectionPad2d(3),
                      tnn.Conv2d(im_in_channels, num_filt, 7),
                      tnn.InstanceNorm2d(num_filt),
                      tnn.ReLU(True)]
         
         #Downsample
-        in_feat = 64
-        out_feat = in_feat*2;
+        input_dim = 64
+        output_dim = input_dim*2;
         for i in range(2):
-            gen_model += [tnn.Conv2d(in_feat, out_feat, 3, stride=2, padding=1),
-                          tnn.InstanceNorm2d(out_feat),
+            gen_model += [tnn.Conv2d(input_dim, output_dim, 3, stride=2, padding=1),
+                          tnn.InstanceNorm2d(output_dim),
                           tnn.ReLU(True)]
-            in_feat = out_feat
-            out_feat = in_feat*2
+            input_dim = output_dim
+            output_dim = input_dim*2
             
+        #Add residual blocks
         for i in range(num_res_blocks):
-            gen_model += [ResBlock(in_feat)]
-            
-        out_feat = in_feat//2
+            gen_model += [ResBlock(input_dim)]
+        
+        #Upsample
+        output_dim = (input_dim//2)
         for i in range(2):
-            gen_model += [tnn.ConvTranspose2d(in_feat, out_feat, 3, stride = 2,
+            gen_model += [tnn.ConvTranspose2d(input_dim, output_dim, 3, stride = 2,
                                               padding = 1, output_padding = 1),
-                          tnn.InstanceNorm2d(out_feat),
+                          tnn.InstanceNorm2d(output_dim),
                           tnn.ReLU(True)]
-            in_feat = out_feat
-            out_feat = in_feat//2
+            input_dim = output_dim
+            output_dim = (input_dim//2)
                         
         gen_model += [tnn.ReflectionPad2d(3),
                   tnn.Conv2d(num_filt, im_out_channels, 7),
@@ -129,10 +129,6 @@ class Discriminator(tnn.Module):
         x = self.model(x)
         return tnn.functional.avg_pool2d(x, x.size()[2:]).view(x.size()[0], -1)
 
-        
-#This section follows the paper, but not the code
-# REMOVE
-
 def conv_norm_weights(m):
     if type(m) == tnn.Conv2d:
         tnn.init.normal(m.weight.data, 0.0, 0.02)
@@ -147,23 +143,22 @@ class LRDecay():
         
 class MapBuffer():
     def __init__(self):
-        self.size = 50
+        self.maxSize = 50
         self.data = []
         
     def cycle(self, data):
-        # EDIT THIS SO IT ISN'T A DIRECT COPY
-        # REMOVE
-        to_return = []
-        for element in data.data:
-            element = torch.unsqueeze(element, 0)
-            if len(self.data) < self.size:
-                self.data.append(element)
-                to_return.append(element)
+        
+        output = []
+        for img in data.data:
+            img = torch.unsqueeze(img, 0)
+            if len(self.data) < self.maxSize:
+                self.data.append(img)
+                output.append(img)
             else:
                 if random.uniform(0,1) > 0.5:
-                    i = random.randint(0, self.size-1)
-                    to_return.append(self.data[i].clone())
-                    self.data[i] = element
+                    i = random.randint(0, self.maxSize-1)
+                    output.append(self.data[i].clone())
+                    self.data[i] = img
                 else:
-                    to_return.append(element)
-        return Variable(torch.cat(to_return))
+                    output.append(img)
+        return Variable(torch.cat(output))

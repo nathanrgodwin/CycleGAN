@@ -60,7 +60,7 @@ class ImageSet(Dataset):
         self.x_files = sorted(glob.glob(os.path.join(self.dataPath, mode+"A") + '/*.*'))
         self.y_files = sorted(glob.glob(os.path.join(self.dataPath, mode+"B") + '/*.*'))
         self.loaded = 1
-        print("Finished loading data")
+        #print("Finished loading data")
         
     def loadImage(self, img_path, im_transforms, mode, scale):
         self.mode = mode;
@@ -68,7 +68,7 @@ class ImageSet(Dataset):
         self.x_files = [img_path];
         self.loaded = 1
         self.scale = scale
-        print("Finished loading image")
+        #print("Finished loading image")
         
     def loadImageSet(self, imgs_path, im_transforms, mode, scale):
         self.mode = mode;
@@ -76,7 +76,7 @@ class ImageSet(Dataset):
         self.x_files = sorted(glob.glob(imgs_path + '/*.*'))
         self.loaded = 1
         self.scale = scale
-        print("Finished loading images")
+        #print("Finished loading images")
         
     def setTransform(self, im_transforms):
         self.transformList = im_transforms;
